@@ -1,0 +1,65 @@
+---
+title: "Query OpenAI API"
+format: html
+editor: visual
+---
+
+## *Examples from OpenAI Documentation*
+
+```{bash}
+curl https://api.openai.com/v1/chat/completions \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $OPENAI_API_KEY" \
+-d '{
+"model": "gpt-3.5-turbo",
+"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Hello!"}]
+}'
+```
+
+```{json}
+{
+  "model": "gpt-3.5-turbo",
+  "messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Hello!"}]
+}
+```
+
+## *Load Packages*
+
+*I have already installed `{httr2}`, `{tidyverse}`, `{usethis}`, `{devtools}`, and `{gert}`. We won't use all of those here, but I usually enjoy hearing the tools others prefer to use for their own development.*
+
+```{r}
+library(httr2)
+```
+
+## *API Query Function*
+
+```{r}
+chat <- function(message) {
+  user_message <- list(list(role = "user", content = message))
+  base_url <- "https://api.openai.com/v1"
+  api_key <- Sys.getenv("OPENAI_API_KEY")
+  body <- list(model = "gpt-3.5-turbo",
+               messages = user_message)
+  req <- request(base_url)
+  resp <-
+    req |> 
+    req_url_path_append("chat/completions") |> 
+    req_auth_bearer_token(token = api_key) |> 
+    req_headers("Content-Type" = "application/json") |> 
+    req_user_agent("James Wade @jameshwade | OpenAI tutorial") |> 
+    req_body_json(body) |> 
+    req_retry(max_tries = 4) |> 
+    req_throttle(rate = 15) |> 
+    req_perform()
+  
+  openai_chat_response <- resp |> resp_body_json(simplifyVector = TRUE)
+  
+  openai_chat_response$choices$message$content
+}
+```
+
+## *Test API*
+
+```{r}
+chat("What is your favorite color?")
+```
