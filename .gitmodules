@@ -1,0 +1,3 @@
+[submodule "hf-chatbot"]
+	path = hf-chatbot
+	url = https://huggingface.co/spaces/jameshwade/r-chatbot
